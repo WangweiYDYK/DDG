@@ -348,7 +348,7 @@ void processInputEvents() {
                             state::currFaceIndex = -1;
                         }
                     }
-                    showSelected();
+                    //showSelected();
                     requestRedraw();
                 }
                 // **

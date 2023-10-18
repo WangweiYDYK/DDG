@@ -401,20 +401,20 @@ SparseMatrix<double> VertexPositionGeometry::massMatrix() const {
 SparseMatrix<std::complex<double>> VertexPositionGeometry::complexLaplaceMatrix() const {
 
     // TODO
-    std::vector<Eigen::Triplet<double>> tripList;
-    for (const auto& v: mesh.vertices())
-    {
-        std::complex<double> value(0.0, 0.0);
-        for (const auto& he : v.outgoingHalfedges())
-        {
-            double cot = edgeCotanWeight(he.edge());
-            value += cot;
-            tripList.emplace_back(Eigen::Triplet<std::complex<double>>(v.getIndex(), v.getIndex(), std::complex<double>(-cot, 0.0));
-        }
-        tripList.emplace_back(Eigen::Triplet<std::complex<double>>(v.getIndex(), v.getIndex(), value + 1e-8));
-    }
+    //std::vector<Eigen::Triplet<double>> tripList;
+    //for (const auto& v: mesh.vertices())
+    //{
+    //    std::complex<double> value(0.0, 0.0);
+    //    for (const auto& he : v.outgoingHalfedges())
+    //    {
+    //        double cot = edgeCotanWeight(he.edge());
+    //        value += cot;
+    //        tripList.emplace_back(Eigen::Triplet<std::complex<double>>(v.getIndex(), v.getIndex(), std::complex<double>(-cot, 0.0)));
+    //    }
+    //    tripList.emplace_back(Eigen::Triplet<std::complex<double>>(v.getIndex(), v.getIndex(), value + 1e-8));
+    //}
     SparseMatrix<std::complex<double>> result(mesh.nVertices(), mesh.nVertices());
-    result.setFromTriplets(tripList.begin(), tripList.end());
+    //result.setFromTriplets(tripList.begin(), tripList.end());
     return result; // placeholder
 }
 
