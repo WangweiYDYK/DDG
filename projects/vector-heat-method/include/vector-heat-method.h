@@ -34,6 +34,7 @@ public:
     // compute the log map
     // log map is a map for M -> TpM
     VertexData<Vector2> computeLogMap(const Vertex& sourceVert, double vertexDistanceShift = 0.);
+    void buildRadialRHS(Vertex vert, Vector<std::complex<double>>& distGradRHS);
 
 private:
     SurfaceMesh& mesh;

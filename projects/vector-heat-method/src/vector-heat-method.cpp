@@ -163,13 +163,88 @@ VectorHeatMethodSolver::transportTangentVectors(const std::vector<std::tuple<Sur
 
 VertexData<Vector2> VectorHeatMethodSolver::computeLogMap(const Vertex& sourceVert, double vertexDistanceShift = 0.) 
 {
+    // initialize
+    geom.requireVertexIndices();
 
-    // to compute the log map of descrete surface, we need to solve the poisson equation
-    // first need to get the descrete radialRHS
+    // first step
+    //---------------------------------------------------------------------------------------------------------
 
     Vector<std::complex<double>> radialRHS = Vector<std::complex<double>>::Zero(mesh.nVertices());
-    buildRadialRHS();
+    buildRadialRHS(sourceVert, radialRHS);
 
+    // solve the radial equation and normalize
     Vector<std::complex<double>> radialSol = vectorHeatSolver->solve(radialRHS);
+    radialSol = (radialSol.array() / radialSol.array().abs());
+    
+    //set the source vertex's radialSol = 0;
+    radialSol[geom.vertexIndices[sourceVert]] = 0;
+
+
+    // second step
+    //---------------------------------------------------------------------------------------------------------
+
+    Vector<std::complex<double>> horizontalRHS = Vector<std::complex<double>>::Zero(mesh.nVertices());
+    horizontalRHS[geom.vertexIndices[sourceVert]] += 1;
+    // Solve
+    Vector<std::complex<double>> horizontalSol = vectorHeatSolver->solve(horizontalRHS);
+
+    // Normalize
+    horizontalSol = (horizontalSol.array() / horizontalSol.array().abs());
+
+    // third step(Integrate radial field to get distance)
+    //---------------------------------------------------------------------------------------------------------
+
+    Vector<double> divergenceVec = Vector<double>::Zero(mesh.nVertices());
+    buildDivergenVec();
+    Vector<double> distance = poissonSolver->solve(divergenceVec);
+    // shift the distance
+    distance.array() += (vertexDistanceShift - distance [geom.vertexIndices[sourceVert]]);
+
+    // fourth step(get the result)
+    //---------------------------------------------------------------------------------------------------------
+    VertexData<Vector2> result(mesh);
+    for (const auto& v: mesh.vertices())
+    {
+        const size_t vInd = geom.vertexIndices[v];
+        std::complex<double> logDir = radialSol[vInd] / horizontalSol[vInd];
+        Vector2 logCoord = Vector2::fromComplex(logDir) * distance[vInd];
+        result[v] = logCoord;
+    }
+    return result;
+}
+
+void VectorHeatMethodSolver::buildRadialRHS(Vertex vert, Vector<std::complex<double>>& distGradRHS) {
+
+
+    // (vert)  ..........
+    //          .     . 
+    //           .  .
+    // (vn)       .
+    auto heightInTriangle = [&](Halfedge he) {
+        double area = geom.faceAreas[he.face()];
+        double length = geom.edgeLengths[he.next().edge()];
+        return 2.0 * area / length;
+    };
+    size_t vInd = geom.vertexIndices[vert];
+    for (const auto& he: vert.outgoingHalfedges())
+    {
+        Vertex vn = he.twin().vertex();
+        size_t vnInd = geom.vertexIndices[vn];
+
+        if (he.isInterior())
+        {
+            double h = heightInTriangle(he);
+            double theta = geom.cornerAngles[he.corner()];
+        }
+        if (he.twin().isInterior())
+        {
+        
+        
+        }
+        if (he.isInterior())
+        {
+            
+        }
+    }
 
 }
